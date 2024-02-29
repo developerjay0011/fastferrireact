@@ -15,21 +15,21 @@ import Loading from "../custom-loading/Loading";
 const getModuleWiseData = (theme) => {
   switch (getCurrentModuleType()) {
     case ModuleTypes.GROCERY:
-      return theme.palette.primary.main;
+      return theme.palette.toolTipColor;
     case ModuleTypes.PHARMACY:
-      return theme.palette.primary.main;
+      return theme.palette.toolTipColor;
     case ModuleTypes.ECOMMERCE:
-      return theme.palette.primary.main;
+      return theme.palette.toolTipColor;
     case ModuleTypes.FOOD:
-      return theme.palette.moduleTheme.food;
+      return theme.palette.toolTipColor;
   }
 };
-const PrimaryToolTip = ({ children, text }) => {
+export const PrimaryToolTip = ({ children, text, placement, arrow }) => {
   return (
     <Tooltip
       title={t(text)}
       arrow
-      placement="top"
+      placement={placement ?? "top"}
       componentsProps={{
         tooltip: {
           sx: {
@@ -56,7 +56,7 @@ const IconButtonStyled = styled(IconButton)(({ theme }) => ({
   width: "36px",
   marginInlineEnd: "6px",
   "&:hover": {
-    backgroundColor: getModuleWiseData(theme),
+    backgroundColor: theme.palette.primary.main,
     border: `0.5px solid ${theme.palette.neutral[100]}`,
   },
 }));

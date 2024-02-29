@@ -6,6 +6,7 @@ import {
   NoSsr,
   Stack,
   Toolbar,
+  Tooltip,
   Typography,
   useMediaQuery,
   useTheme,
@@ -38,6 +39,9 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import { getModule } from "../../../helper-functions/getLanguage";
 import { handleProductValueWithOutDiscount } from "../../../utils/CustomFunctions";
 import useGetGuest from "../../../api-manage/hooks/react-query/guest/useGetGuest";
+import ThemeSwitches from "../top-navbar/ThemeSwitches";
+import CallToAdmin from "../../CallToAdmin";
+import CustomLanguage from "../top-navbar/language/CustomLanguage";
 
 const Cart = ({ isLoading }) => {
   const [sideDrawerOpen, setSideDrawerOpen] = useState(false);
@@ -131,20 +135,19 @@ const SecondNavBar = ({ configData }) => {
   const { cartList } = useSelector((state) => state.cart);
   const { selectedModule } = useSelector((state) => state.utilsData);
   const { offlineInfoStep } = useSelector((state) => state.offlinePayment);
+  const { countryCode, language } = useSelector((state) => state.configData);
   const isSmall = useMediaQuery("(max-width:1180px)");
   const { profileInfo } = useSelector((state) => state.profileInfo);
   const [openPopover, setOpenPopover] = useState(false);
-
   const [moduleType, SetModuleType] = useState("");
   const { wishLists } = useSelector((state) => state.wishList);
   const [toggled, setToggled] = useState(false);
-
   const totalWishList = wishLists?.item?.length + wishLists?.store?.length;
   const anchorRef = useRef(null);
   let token = undefined;
   let location = undefined;
-  let zoneId;
-  let guestId;
+  let zoneId = undefined;
+  let guestId = undefined;
 
   if (typeof window !== "undefined") {
     token = localStorage.getItem("token");
@@ -161,11 +164,22 @@ const SecondNavBar = ({ configData }) => {
   } = useGetGuest();
 
   useEffect(() => {
-    // Check if there is no guest ID in local storage and there is no ongoing API request
-    if (!guestId && !guestIsLoading) {
-      guestRefetch();
-    }
-  }, [guestId, guestIsLoading, guestRefetch]);
+    const fetchGuestId = async () => {
+      try {
+        // Check if there is no guest ID in local storage
+        if (!guestId) {
+          // Trigger API call to get guest ID
+          await guestRefetch();
+        }
+      } catch (error) {
+        // Handle error (e.g., log it or show a notification)
+        console.error("Error fetching guest ID:", error);
+      }
+    };
+
+    // Call the function to fetch guest ID
+    fetchGuestId();
+  }, [guestId, guestRefetch]);
 
   useEffect(() => {
     // Update guestId when guestData is available
@@ -291,7 +305,23 @@ const SecondNavBar = ({ configData }) => {
         >
           {!token && moduleType !== "parcel" && location && (
             <IconButton onClick={handleTrackOrder}>
-              <LocalShippingOutlinedIcon fontSize="22px" />
+              <Tooltip
+                title={t("Track order")}
+                arrow
+                placement="top"
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      bgcolor: (theme) => theme.palette.toolTipColor,
+                      "& .MuiTooltip-arrow": {
+                        color: (theme) => theme.palette.toolTipColor,
+                      },
+                    },
+                  },
+                }}
+              >
+                <LocalShippingOutlinedIcon fontSize="22px" />
+              </Tooltip>
             </IconButton>
           )}
           {token && moduleType !== "parcel" && (
@@ -306,9 +336,11 @@ const SecondNavBar = ({ configData }) => {
             <WishListSideBar totalWishList={totalWishList} />
           )}
 
-          {moduleType !== "parcel" && (location || cartList?.length !== 0) && (
-            <Cart isLoading={isLoading} />
-          )}
+          {moduleType !== "parcel" &&
+            !isLoading &&
+            (location || cartList?.length !== 0) && (
+              <Cart isLoading={isLoading} />
+            )}
 
           {token ? (
             <IconButton
@@ -345,7 +377,24 @@ const SecondNavBar = ({ configData }) => {
               </Typography>
             </IconButton>
           ) : (
-            <CustomSignInButton from={router.pathname.replace("/", "")} />
+            <Stack flexDirection="row">
+              {!location && (
+                <Stack
+                  direction="row"
+                  spacing={2}
+                  justifyContent="end"
+                  alignItems="center"
+                >
+                  <ThemeSwitches />
+                  <CallToAdmin configData={configData} />
+                  <CustomLanguage
+                    countryCode={countryCode}
+                    language={language}
+                  />
+                </Stack>
+              )}
+              <CustomSignInButton from={router.pathname.replace("/", "")} />
+            </Stack>
           )}
         </CustomStackFullWidth>
       )}

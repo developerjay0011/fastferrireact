@@ -19,21 +19,23 @@ const CartActions = (props) => {
   const router = useRouter();
   const dispatch = useDispatch();
 
-
   const handleRoute = () => {
     router.push("/checkout?page=cart", undefined, { shallow: true });
   }
   const handleCheckout = () => {
     if (cartList?.length > 0 && !token && configData?.guest_checkout_status === 1) {
       setOpen(true);
-    } else if (cartList?.length > 0) {
+    } else if (cartList?.length > 0 && token) {
       router.push("/checkout?page=cart", undefined, { shallow: true });
       setSideDrawerOpen(false);
     } else {
-      if (router.pathname === "/home") {
+      if (cartList?.length === 0) {
         setSideDrawerOpen(false);
-      } else {
         router.push("/home", undefined, { shallow: true });
+      } else {
+        setSideDrawerOpen(false);
+        router.push('/auth/sign-in');
+
       }
     }
   };

@@ -3,8 +3,7 @@ import { Grid, Typography, useMediaQuery } from "@mui/material";
 import DeliveryDetails from "../item-checkout/DeliveryDetails";
 import { Stack } from "@mui/system";
 import useGetStoreDetails from "../../../api-manage/hooks/react-query/store/useGetStoreDetails";
-import { useSelector } from "react-redux";
-import PaymentMethod from "../PaymentMethod";
+import { useDispatch, useSelector } from "react-redux";
 import { useMutation, useQuery } from "react-query";
 import { GoogleApi } from "../../../api-manage/hooks/react-query/googleApi";
 import PlaceOrder from "../item-checkout/PlaceOrder";
@@ -31,10 +30,12 @@ import AddPaymentMethod from "../item-checkout/AddPaymentMethod";
 import useGetMostTrips from "../../../api-manage/hooks/react-query/useGetMostTrips";
 import { useTheme } from "@emotion/react";
 import { getGuestId, getToken } from "../../../helper-functions/getToken";
+import { setOrderDetailsModal } from "../../../redux/slices/offlinePaymentData";
 
 const PrescriptionCheckout = ({ storeId }) => {
   const router = useRouter();
   const theme = useTheme();
+  const dispatch = useDispatch();
   const matches = useMediaQuery("(max-width:1180px)");
   const isSmall = useMediaQuery(theme.breakpoints.down("md"));
   const [orderType, setOrderType] = useState("delivery");
@@ -49,7 +50,7 @@ const PrescriptionCheckout = ({ storeId }) => {
   const { configData } = useSelector((state) => state.configData);
   const { data: storeData, refetch } = useGetStoreDetails(storeId);
   const { guestUserInfo } = useSelector((state) => state.guestUserInfo);
-  const guestId = getGuestId()
+  const guestId = getGuestId();
 
   useEffect(() => {
     refetch();
@@ -98,7 +99,6 @@ const PrescriptionCheckout = ({ storeId }) => {
   );
 
   const handleOrderMutationObject = () => {
-    console.log("deliveryTip", deliveryTip)
     const originData = {
       latitude: storeData?.latitude,
       longitude: storeData?.longitude,
@@ -132,17 +132,22 @@ const PrescriptionCheckout = ({ storeId }) => {
         if (!getToken()) {
           router.push(
             {
-              pathname: "/order",
+              pathname: "/home",
               query: { order_id: res?.data?.order_id },
             },
             undefined,
             { shallow: true }
           );
         } else {
+          dispatch(setOrderDetailsModal(true));
           router.push(
             {
               pathname: "/profile",
-              query: { orderId: res?.data?.order_id, page: "my-orders", from: "checkout" },
+              query: {
+                orderId: res?.data?.order_id,
+                page: "my-orders",
+                from: "checkout",
+              },
             },
             undefined,
             { shallow: true }

@@ -1,9 +1,9 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   getMessaging,
   getToken,
-  onMessage,
   isSupported,
+  onMessage,
 } from "firebase/messaging";
 
 const firebaseConfig = {
@@ -32,8 +32,7 @@ const messaging = (async () => {
 
 export const fetchToken = async (setTokenFound, setFcmToken) => {
   return getToken(await messaging, {
-    vapidKey:
-      "",
+    vapidKey: "",
   })
     .then((currentToken) => {
       if (currentToken) {

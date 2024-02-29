@@ -7,6 +7,8 @@ import {
   Modal,
   Skeleton,
   Typography,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
 import {
   CustomBoxWrapper,
@@ -51,8 +53,11 @@ const MapModal = ({
   disableAutoFocus,
   fromReceiver,
   fromStore,
+  selectedLocation,
 }) => {
   const router = useRouter();
+  const theme = useTheme();
+  const isXSmall = useMediaQuery(theme.breakpoints.down("sm"));
   const { configData } = useSelector((state) => state.configData);
   const { t } = useTranslation();
   const [searchKey, setSearchKey] = useState("");
@@ -63,7 +68,9 @@ const MapModal = ({
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [placeId, setPlaceId] = useState("");
   const [placeDescription, setPlaceDescription] = useState(undefined);
-  const [location, setLocation] = useState(configData?.default_location);
+  const [location, setLocation] = useState(
+    selectedLocation ? selectedLocation : configData?.default_location
+  );
   const [zoneId, setZoneId] = useState(undefined);
   const [isLoadingCurrentLocation, setLoadingCurrentLocation] = useState(false);
   const [currentLocation, setCurrentLocation] = useState({});
@@ -89,6 +96,27 @@ const MapModal = ({
       userDecisionTimeout: 5000,
       isGeolocationEnabled: true,
     });
+  // useEffect(() => {
+  //   if (userLocation) {
+  //     setLocation({
+  //       lat: userLocation?.lat,
+  //       lng: userLocation?.lng
+  //     })
+  //     setCurrentLocation({
+  //       lat: userLocation?.latitude,
+  //       lng: userLocation?.longitude,
+  //     });
+  //   } else {
+  //     setLocation(configData?.default_location)
+  //     if (coords) {
+  //       setCurrentLocation({
+  //         lat: coords.latitude,
+  //         lng: coords.longitude,
+  //       });
+  //     }
+
+  //   }
+  // }, [])
   useEffect(() => {
     if (places) {
       setPredictions(places?.predictions);
@@ -233,8 +261,8 @@ const MapModal = ({
           expand={isModalExpand ? "true" : "false"}
           sx={{
             display: openModuleSelection ? "none" : "inherit",
-            padding: { xs: "1rem", md: "2rem" },
-            borderRadius: isModalExpand ? "0px" : "20px",
+            padding: { xs: "15px", md: "2rem" },
+            borderRadius: isModalExpand ? "0px" : { xs: "8px", md: "20px" },
             position: "relative",
           }}
         >
@@ -242,11 +270,21 @@ const MapModal = ({
             onClick={() => handleClose()}
             sx={{ position: "absolute", top: 5, right: 8 }}
           >
-            <CloseIcon />
+            <CloseIcon sx={{ fontSize: { xs: "18px", md: "24px" } }} />
           </IconButton>
           <CustomStackFullWidth spacing={2}>
-            <Typography variant="h6">
-              {t("Type your address here or pick from map")}
+            <Typography fontSize={{ xs: "14px", md: "1rem" }} fontWeight={500}>
+              {t("Pick Location")}
+            </Typography>
+            <Typography
+              fontSize={{ xs: "12px", md: "14px" }}
+              fontWeight={400}
+              color={theme.palette.neutral[500]}
+            >
+              {/* {t("Type your address here or pick from map")} */}
+              {t(
+                "Sharing your accurate location enhances precision in search results and delivery estimates, ensures effortless order delivery."
+              )}
             </Typography>
             <CustomStackFullWidth>
               {loadingAuto ? (
@@ -351,7 +389,11 @@ const MapModal = ({
                   </CustomTypographyGray>
                 </CustomStackFullWidth>
               )}
-              <WrapperCurrentLocationPick alignItems="center" spacing={2}>
+              <WrapperCurrentLocationPick
+                alignItems="center"
+                isXsmall={isXSmall}
+                spacing={{ xs: 1, md: 2 }}
+              >
                 <ModalExtendShrink
                   isModalExpand={isModalExpand}
                   setIsModalExpand={setIsModalExpand}
